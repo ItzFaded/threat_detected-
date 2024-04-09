@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game</title>
+<style>
+    body, html {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f0f0f0;
+    }
+    #grid-container {
+        width: 600px; /* Set a fixed width for the grid container */
+        margin: 0 auto; /* Center the grid container horizontally */
+        position: relative; /* Add relative positioning to the grid container */
+        display: grid;
+        grid-template-columns: repeat(60, 10px);
+        grid-template-rows: repeat(60, 10px);
+        border: 1px solid grey; /* Add border to the grid container */
+    }
+    .grid-cell {
+        width: 10px;
+        height: 10px;
+        border: 1px solid #ccc; /* Set color of the grid lines to a lighter grey */
+        background-color: #fff;
+    }
+    .character {
+        width: 10px;
+        height: 10px;
+        background-color: blue;
+        position: absolute;
+    }
+    .threat {
+        width: 10px;
+        height: 10px;
+        background-color: red;
+        position: absolute;
+        border-radius: 50%;
+    }
+    .threat-area {
+        position: absolute;
+        border: 2px solid red;
+        border-radius: 50%;
+        width: 220px;
+        height: 220px;
+        top: calc(var(--threat-top) * 10px - 105px);
+        left: calc(var(--threat-left) * 10px - 105px);
+    }
+</style>
+</head>
+<body>
+<div id="grid-container"></div>
+
+<audio id="audio" src="sadhampter10b.mp3"></audio>
+
+<script>
+    const gridContainer = document.getElementById('grid-container');
+    const character = document.createElement('div');
+    const threat = document.createElement('div');
+    const threatArea = document.createElement('div');
+    const audio = document.getElementById('audio');
+    const gridSize = 60;
+    const threatRadius = 10;
+    let characterPosition = { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) };
+    let threatPosition = { x: Math.floor(Math.random() * gridSize), y: Math.floor(Math.random() * gridSize) };
+    let isCharacterInsideThreatArea = false;
+
+    character.className = 'character';
+    threat.className = 'threat';
+    threatArea.className = 'threat-area';
+
+    gridContainer.appendChild(character);
+    gridContainer.appendChild(threat);
+    gridContainer.appendChild(threatArea);
+
+    updateCharacterPosition();
+    updateThreatPosition();
+    updateThreatAreaPosition();
+
+    function updateCharacterPosition() {
+        character.style.left = characterPosition.x * 10 + 'px';
+        character.style.top = characterPosition.y * 10 + 'px';
+    }
+
+    function updateThreatPosition() {
+        threat.style.left = threatPosition.x * 10 + 'px';
+        threat.style.top = threatPosition.y * 10 + 'px';
+    }
+
+    function updateThreatAreaPosition() {
+        threatArea.style.setProperty('--threat-left', threatPosition.x);
+        threatArea.style.setProperty('--threat-top', threatPosition.y);
+    }
+
+    function playSound() {
+        audio.play();
+    }
+
+    function stopSound() {
+        audio.pause();
+        audio.currentTime = 0;
+    }
+
+    function isCharacterInThreatArea(characterPosition, threatPosition) {
+        const distanceSquared = Math.pow(characterPosition.x - threatPosition.x, 2) + Math.pow(characterPosition.y - threatPosition.y, 2);
+        return distanceSquared <= Math.pow(threatRadius, 2);
+    }
+
+    function printProximity() {
+        const isInside = isCharacterInThreatArea(characterPosition, threatPosition);
+        if (isInside && !isCharacterInsideThreatArea) {
+            console.log('Character entered threat area');
+            playSound();
+        } else if (!isInside && isCharacterInsideThreatArea) {
+            console.log('Character exited threat area');
+            stopSound();
+        }
+        isCharacterInsideThreatArea = isInside;
+    }
+
+    document.addEventListener('keydown', function(e) {
+        switch(e.key) {
+            case 'ArrowUp':
+                if (characterPosition.y > 0) {
+                    characterPosition.y--;
+                    printProximity();
+                }
+                break;
+            case 'ArrowDown':
+                if (characterPosition.y < gridSize - 1) {
+                    characterPosition.y++;
+                    printProximity();
+                }
+                break;
+            case 'ArrowLeft':
+                if (characterPosition.x > 0) {
+                    characterPosition.x--;
+                    printProximity();
+                }
+                break;
+            case 'ArrowRight':
+                if (characterPosition.x < gridSize - 1) {
+                    characterPosition.x++;
+                    printProximity();
+                }
+                break;
+        }
+        updateCharacterPosition();
+    });
+</script>
+</body>
+</html>
